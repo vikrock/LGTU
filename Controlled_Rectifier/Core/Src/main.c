@@ -45,23 +45,20 @@
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
-TIM_HandleTypeDef htim3;
-
 /* USER CODE BEGIN PV */
 float32_t sensitivity = 0.1f; 		// чувствительность 0.1 для 20A модуля, 0,185 для 5А, 0,066 для 30А
 volatile uint16_t adcData[2];		// массив для сбора данных двух каналов АЦП
 float32_t rawVoltage; 				// Предварительно измеренное значение тока
 float32_t Current; 					// Расчётное значение тока
 float32_t Current_filtr; 			// Фильтрованное значение тока (скользящее среднее)
-float32_t targetCurrent = 2; 		// Задание на ток
+float32_t targetCurrent = 1; 		// Задание на ток
 
 uint32_t Alpha = 35e3;			//переменная угол альфа
 uint32_t maxAlpha = 35e3;		//180 градусов или 10мС
 uint8_t minAlpha = 0U;			//минимальный угол
 uint32_t refAlpha = 10;			//заданный угол от потенциометра
-uint32_t refAlpha_filtr = 0U;
 uint32_t autoAlpha = 10;		//угол после ПИ регулятора
-uint32_t Pulse = 3e3;			// длительность импульса
+uint32_t Pulse = 4e3;			// длительность импульса
 
 volatile uint8_t flag_irq_pos = 0;
 volatile uint8_t flag_irq_neg = 0;
@@ -76,7 +73,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
-static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 
@@ -117,13 +113,10 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
-  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   PID_init();
   HAL_ADCEx_Calibration_Start(&hadc1);				 // калибровка АЦП
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&adcData, 2);// запуск АЦП в режиме DMA (1 ячейка ток, 2 ячейка потенциометр)
-  HAL_TIM_Base_Start(&htim3);
-
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&adcData, 2);// запуск АЦП в режиме DMA (0 ячейка ток, 1 ячейка потенциометр)
 
   /* USER CODE END 2 */
 
@@ -131,18 +124,20 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1) {
 
-		if (flag_irq_pos && (HAL_GetTick() - time_irq) > 10U) {
-			__HAL_GPIO_EXTI_CLEAR_IT(Zero_positive_Pin);  // очищаем бит EXTI_PR
-			NVIC_ClearPendingIRQ(EXTI0_1_IRQn); 	// очищаем бит NVIC_ICPRx
-			HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);   // включаем внешнее прерывание
+		if (flag_irq_pos && (HAL_GetTick() - time_irq) > 10U) {// условие включения прерывания
+//(поднят флаг окончания процедуры и разница текущей временной метки и метки начала процедуры больше 10)
 
-			flag_irq_pos = 0;
+			__HAL_GPIO_EXTI_CLEAR_IT(Zero_positive_Pin);  // очищаем бит EXTI_PR
+			NVIC_ClearPendingIRQ(EXTI0_1_IRQn); 		// очищаем бит NVIC_ICPRx
+			HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);   		// включаем внешнее прерывание
+
+			flag_irq_pos = 0;							// Опускаем флаг
 		}
 
 		if (flag_irq_neg && (HAL_GetTick() - time_irq) > 10U) {
-			__HAL_GPIO_EXTI_CLEAR_IT(Zero_negative_Pin);  // очищаем бит EXTI_PR
-			NVIC_ClearPendingIRQ(EXTI4_15_IRQn); 	// очищаем бит NVIC_ICPRx
-			HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);   // включаем внешнее прерывание
+			__HAL_GPIO_EXTI_CLEAR_IT(Zero_negative_Pin);
+			NVIC_ClearPendingIRQ(EXTI4_15_IRQn);
+			HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 			flag_irq_neg = 0;
 		}
@@ -150,19 +145,11 @@ int main(void)
 		autoAlpha = 3.5f * (10000U - PID_realize(targetCurrent, Current_filtr)); //после ПИ регулятора
 
 		if (HAL_GPIO_ReadPin(GPIOA, Switch_Pin) == ON) {
-			Alpha = refAlpha_filtr;
+			Alpha = refAlpha;
 		}	//переключатель режима Авто-Ручной
 		else {
 			Alpha = autoAlpha;
 		}
-/*
-		if (Alpha > maxAlpha) {
-			Alpha = maxAlpha;
-		}							//ограничение угла альфа максимум
-		else if (Alpha < minAlpha) {
-			Alpha = minAlpha;
-		}						//ограничение угла альфа минимум
-*/
 
     /* USER CODE END WHILE */
 
@@ -289,51 +276,6 @@ static void MX_ADC1_Init(void)
 }
 
 /**
-  * @brief TIM3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM3_Init(void)
-{
-
-  /* USER CODE BEGIN TIM3_Init 0 */
-
-  /* USER CODE END TIM3_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM3_Init 1 */
-
-  /* USER CODE END TIM3_Init 1 */
-  htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 64-1;
-  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 10000-1;
-  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM3_Init 2 */
-
-  /* USER CODE END TIM3_Init 2 */
-
-}
-
-/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -409,20 +351,20 @@ static void MX_GPIO_Init(void)
 // ----------------------------Обратотка прерываний от точек перехода нуля------------------
 
 __weak void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
-	if (GPIO_Pin == Zero_positive_Pin) { // если прерывание пришло от положительной волны
-		HAL_NVIC_DisableIRQ(EXTI0_1_IRQn); // сразу же отключаем прерывания на этом пине
-		time_irq = HAL_GetTick();
+	if (GPIO_Pin == Zero_positive_Pin) {  // если прерывание пришло от положительной волны то
+		HAL_NVIC_DisableIRQ(EXTI0_1_IRQn);// сразу же отключаем прерывания на этом пине
+		time_irq = HAL_GetTick();		  // сохраним текущую временную метку (для отсчёта длительности отключки)
 
 		for (uint32_t var = 0; var < Alpha; ++var) {
-		}		// задержка угла альфа
+		}								// задержка угла альфа
 
 		HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, OFF);	// включаем тиристоры Т1 и Т2
 
 		for (uint32_t var = 0; var < Pulse; ++var) {
-		}		// задержка длинны импульса
+		}								// задержка длинны импульса
 
 		HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, ON);// выключаем тиристоры Т1 иТ2
-		flag_irq_pos = 1;
+		flag_irq_pos = 1;				//поднимаем флаг
 	} else if (GPIO_Pin == Zero_negative_Pin) { //если прерывание пришло от отрицательной волны
 		HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
 		time_irq = HAL_GetTick();
@@ -451,16 +393,15 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	 * делим на максимальное число АЦП(сейчас у нас 2^15=32768 смотреть в свойствах АЦП Oversampling ratio)
 	 * и домножим на погрежность резисторов (выяснить экспериментально сейчас 1,0099).
 	 * Всё это посчитаем заранее ((3,3*2/32767)*1.0099 = 0,00020341624195074313)и получим напряжение.
-	 * Далее из этого напряжение вычтем 2,5В и разделим на чувствительность(вместо деления сделаем умножение),
+	 * Далее из этого напряжения вычтем 2,5В и разделим на чувствительность датчика(вместо деления сделаем умножение),
 	 * и получим наш ток.
 	 */
 	rawVoltage = (float32_t) adcData[0] * 0.00020341624195074313f;
 
 	Current = (rawVoltage - 2.5f) * 10U;// измеренный ток ((rawVoltage - 2.5)/sensitivity = (rawVoltage - 2.5)*10)
 	Current_filtr = (1U - 0.1f) * Current_filtr + 0.1f * Current;// фильтр (скользящее среднее)
-	refAlpha_filtr = (1U - 0.1f) * refAlpha_filtr + 0.1f * adcData[1];// фильтр (скользящее среднее)
 
-	refAlpha = adcData[1];	//задание от потенциометра
+	refAlpha = (1U - 0.1f) * refAlpha + 0.1f * adcData[1]; //фильтрованное задание от потенциометра
 
 }
 
