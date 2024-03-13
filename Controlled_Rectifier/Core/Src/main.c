@@ -53,12 +53,12 @@ float32_t Current; 					// Расчётное значение тока
 float32_t Current_filtr; 			// Фильтрованное значение тока (скользящее среднее)
 float32_t targetCurrent = 1; 		// Задание на ток
 
-uint32_t Alpha = 35e3;			//переменная угол альфа
-uint32_t maxAlpha = 35e3;		//180 градусов или 10мС
+uint16_t Alpha = 35e3;			//переменная угол альфа
+uint16_t maxAlpha = 35e3;		//180 градусов или 10мС
 uint8_t minAlpha = 0U;			//минимальный угол
-uint32_t refAlpha = 10;			//заданный угол от потенциометра
-uint32_t autoAlpha = 10;		//угол после ПИ регулятора
-uint32_t Pulse = 4e3;			// длительность импульса
+uint16_t refAlpha = 10;			//заданный угол от потенциометра
+uint16_t autoAlpha = 10;		//угол после ПИ регулятора
+uint16_t Pulse = 4e3;			// длительность импульса
 
 volatile uint8_t flag_irq_pos = 0;
 volatile uint8_t flag_irq_neg = 0;
@@ -124,8 +124,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1) {
 
-		if (flag_irq_pos && (HAL_GetTick() - time_irq) > 10U) {// условие включения прерывания
-//(поднят флаг окончания процедуры и разница текущей временной метки и метки начала процедуры больше 10)
+		if (flag_irq_pos && (HAL_GetTick() - time_irq) > 11U) {// условие включения прерывания
+//(поднят флаг окончания процедуры и разница текущей временной метки и метки начала процедуры больше 11)
 
 			__HAL_GPIO_EXTI_CLEAR_IT(Zero_positive_Pin);  // очищаем бит EXTI_PR
 			NVIC_ClearPendingIRQ(EXTI0_1_IRQn); 		// очищаем бит NVIC_ICPRx
@@ -355,12 +355,12 @@ __weak void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 		HAL_NVIC_DisableIRQ(EXTI0_1_IRQn);// сразу же отключаем прерывания на этом пине
 		time_irq = HAL_GetTick();		  // сохраним текущую временную метку (для отсчёта длительности отключки)
 
-		for (uint32_t var = 0; var < Alpha; ++var) {
+		for (uint16_t var = 0; var < Alpha; ++var) {
 		}								// задержка угла альфа
 
 		HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, OFF);	// включаем тиристоры Т1 и Т2
 
-		for (uint32_t var = 0; var < Pulse; ++var) {
+		for (uint16_t var = 0; var < Pulse; ++var) {
 		}								// задержка длинны импульса
 
 		HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, ON);// выключаем тиристоры Т1 иТ2
@@ -369,12 +369,12 @@ __weak void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 		HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
 		time_irq = HAL_GetTick();
 
-		for (uint32_t var = 0; var < Alpha; ++var) {
+		for (uint16_t var = 0; var < Alpha; ++var) {
 		}	// задержка угла альфа
 
 		HAL_GPIO_WritePin(GPIOA, T3_Pin | T4_Pin, OFF);	//включаем тиристоры Т3 и Т4
 
-		for (uint32_t var = 0; var < Pulse; ++var) {
+		for (uint16_t var = 0; var < Pulse; ++var) {
 		}	// задержка длинны импульса
 
 		HAL_GPIO_WritePin(GPIOA, T3_Pin | T4_Pin, ON);// выключаем тиристоры Т3 иТ4
