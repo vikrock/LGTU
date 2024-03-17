@@ -1,0 +1,10 @@
+18:33:51 **** Incremental Build of configuration Debug for project Controlled_Rectifier ****
+make -j12 all 
+arm-none-eabi-size  Controlled_Rectifier.elf 
+   text	   data	    bss	    dec	    hex	filename
+  18164	     32	   1888	  20084	   4e74	Controlled_Rectifier.elf
+Finished building: default.size.stdout
+ 
+
+18:33:52 Build Finished. 0 errors, 0 warnings. (took 242ms)
+

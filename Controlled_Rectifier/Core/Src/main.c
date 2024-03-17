@@ -45,20 +45,22 @@
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+TIM_HandleTypeDef htim3;
+
 /* USER CODE BEGIN PV */
 float32_t sensitivity = 0.1f; 		// чувствительность 0.1 для 20A модуля, 0,185 для 5А, 0,066 для 30А
 volatile uint16_t adcData[2];		// массив для сбора данных двух каналов АЦП
 float32_t rawVoltage; 				// Предварительно измеренное значение тока
 float32_t Current; 					// Расчётное значение тока
 float32_t Current_filtr; 			// Фильтрованное значение тока (скользящее среднее)
-float32_t targetCurrent = 1; 		// Задание на ток
+float32_t targetCurrent = 1.0f; 		// Задание на ток
 
-uint32_t Alpha = 35e3;			//переменная угол альфа
-uint32_t maxAlpha = 35e3;		//180 градусов или 10мС
+uint16_t Alpha = 35e3;			//переменная угол альфа
+uint16_t maxAlpha = 35e3;		//180 градусов или 10мС
 uint8_t minAlpha = 0U;			//минимальный угол
-uint32_t refAlpha = 10;			//заданный угол от потенциометра
-uint32_t autoAlpha = 10;		//угол после ПИ регулятора
-uint32_t Pulse = 4e3;			// длительность импульса
+uint16_t refAlpha = 10;			//заданный угол от потенциометра
+uint16_t autoAlpha = 10;		//угол после ПИ регулятора
+uint16_t Pulse = 4e3;			// длительность импульса
 
 volatile uint8_t flag_irq_pos = 0;
 volatile uint8_t flag_irq_neg = 0;
@@ -73,6 +75,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 
@@ -113,10 +116,12 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   PID_init();
   HAL_ADCEx_Calibration_Start(&hadc1);				 // калибровка АЦП
   HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&adcData, 2);// запуск АЦП в режиме DMA (0 ячейка ток, 1 ячейка потенциометр)
+  HAL_TIM_Base_Start(&htim3);
 
   /* USER CODE END 2 */
 
@@ -276,6 +281,51 @@ static void MX_ADC1_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 64-1;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 1000-1;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -325,7 +375,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : T1_Pin T4_Pin T2_Pin T3_Pin */
   GPIO_InitStruct.Pin = T1_Pin|T4_Pin|T2_Pin|T3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -351,33 +401,27 @@ static void MX_GPIO_Init(void)
 // ----------------------------Обратотка прерываний от точек перехода нуля------------------
 
 __weak void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
-	if (GPIO_Pin == Zero_positive_Pin) {  // если прерывание пришло от положительной волны то
+	if (GPIO_Pin == Zero_positive_Pin) {  // если прерывание пришло от положительной волны то:
 		HAL_NVIC_DisableIRQ(EXTI0_1_IRQn);// сразу же отключаем прерывания на этом пине
 		time_irq = HAL_GetTick();		  // сохраним текущую временную метку (для отсчёта длительности отключки)
 
-		for (uint32_t var = 0; var < Alpha; ++var) {
-		}								// задержка угла альфа
+		for (uint16_t var = 0; var < Alpha; ++var) __NOP(); // задержка угла альфа
 
-		HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, OFF);	// включаем тиристоры Т1 и Т2
+		HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, OFF);		// включаем тиристоры Т1 и Т2
 
-		for (uint32_t var = 0; var < Pulse; ++var) {
-		}								// задержка длинны импульса
+		for (uint16_t var = 0; var < Pulse; ++var) __NOP();	// задержка длинны импульса
 
-		HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, ON);// выключаем тиристоры Т1 иТ2
-		flag_irq_pos = 1;				//поднимаем флаг
-	} else if (GPIO_Pin == Zero_negative_Pin) { //если прерывание пришло от отрицательной волны
+		HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, ON);		// выключаем тиристоры Т1 иТ2
+
+		flag_irq_pos = 1;									//поднимаем флаг
+
+	} else if (GPIO_Pin == Zero_negative_Pin) { 			//если прерывание пришло от отрицательной волны то:
 		HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
 		time_irq = HAL_GetTick();
-
-		for (uint32_t var = 0; var < Alpha; ++var) {
-		}	// задержка угла альфа
-
-		HAL_GPIO_WritePin(GPIOA, T3_Pin | T4_Pin, OFF);	//включаем тиристоры Т3 и Т4
-
-		for (uint32_t var = 0; var < Pulse; ++var) {
-		}	// задержка длинны импульса
-
-		HAL_GPIO_WritePin(GPIOA, T3_Pin | T4_Pin, ON);// выключаем тиристоры Т3 иТ4
+		for (uint16_t var = 0; var < Alpha; ++var) __NOP();
+		HAL_GPIO_WritePin(GPIOA, T3_Pin | T4_Pin, OFF);
+		for (uint16_t var = 0; var < Pulse; ++var) __NOP();
+		HAL_GPIO_WritePin(GPIOA, T3_Pin | T4_Pin, ON);
 		flag_irq_neg = 1;
 	} else {
 		__NOP();
