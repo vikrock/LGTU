@@ -17,22 +17,22 @@ void PID_init()
     pid.err= 0.0f;				    // текущее ошибка фактического и заданного
     pid.integral= 0.0f;			  	// значение интеграла
     pid.Kp= 0.1f;				    // пропорциональный коэффициент
-    pid.Ki= 10;				    	// интегральный коэффициент
+    pid.Ki= 10.0f;				    	// интегральный коэффициент
 
 }
 
-float PID_realize( float c, float c_r)
+float PID_realize( float32_t c, float32_t c_r)
 {
     pid.targetCurrent = c;									// задание на ток
     pid.ActualCurrent = c_r;								// измеренное значение тока
     pid.err = pid.targetCurrent - pid.ActualCurrent;		// расчёт ошибки
     pid.integral += pid.err;								// накопление интеграла
         if (pid.integral > 1000U) {pid.integral = 1000U;}	// насыщение интеграла
-    	else if (pid.integral < 0) {pid.integral = 0;}
+    	else if (pid.integral < 0U) {pid.integral = 0U;}
 
     pid.result = (pid.Kp * pid.err) + (pid.integral * pid.Ki);// формула ПИ
     if (pid.result > 10000U) {pid.result = 10000U;}				// ограничение регулятора
-        else if (pid.result < 0) {pid.result = 0;}
+        else if (pid.result < 0U) {pid.result = 0U;}
 
     return pid.result;
 }

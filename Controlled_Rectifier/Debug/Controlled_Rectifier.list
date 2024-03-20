@@ -29,23 +29,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY
  12 .comment      00000043  00000000  00000000  00020040  2**0
                   CONTENTS, READONLY
- 13 .debug_info   0000c920  00000000  00000000  00020083  2**0
+ 13 .debug_info   0000c93b  00000000  00000000  00020083  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_abbrev 0000209e  00000000  00000000  0002c9a3  2**0
+ 14 .debug_abbrev 000020ad  00000000  00000000  0002c9be  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_aranges 00000e20  00000000  00000000  0002ea48  2**3
+ 15 .debug_aranges 00000e20  00000000  00000000  0002ea70  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_rnglists 00000ae7  00000000  00000000  0002f868  2**0
+ 16 .debug_rnglists 00000ae7  00000000  00000000  0002f890  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_macro  000173f5  00000000  00000000  0003034f  2**0
+ 17 .debug_macro  000174ff  00000000  00000000  00030377  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line   0000ec2c  00000000  00000000  00047744  2**0
+ 18 .debug_line   0000edc3  00000000  00000000  00047876  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    00097c0f  00000000  00000000  00056370  2**0
+ 19 .debug_str    00097c0f  00000000  00000000  00056639  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .debug_frame  000034a8  00000000  00000000  000edf80  2**2
+ 20 .debug_frame  000034a8  00000000  00000000  000ee248  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 0000006c  00000000  00000000  000f1428  2**0
+ 21 .debug_line_str 0000006c  00000000  00000000  000f16f0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -1989,21 +1989,21 @@ int main(void)
  8000f78:	d90e      	bls.n	8000f98 <main+0x74>
 //(поднят флаг окончания процедуры и разница текущей временной метки и метки начала процедуры больше 10)
 
-			__HAL_GPIO_EXTI_CLEAR_IT(Zero_positive_Pin);  // очищаем бит EXTI_PR
+			__HAL_GPIO_EXTI_CLEAR_IT(Zero_positive_Pin);  	// очищаем бит EXTI_PR
  8000f7a:	4b31      	ldr	r3, [pc, #196]	; (8001040 <main+0x11c>)
  8000f7c:	2201      	movs	r2, #1
  8000f7e:	60da      	str	r2, [r3, #12]
  8000f80:	4b2f      	ldr	r3, [pc, #188]	; (8001040 <main+0x11c>)
  8000f82:	2201      	movs	r2, #1
  8000f84:	611a      	str	r2, [r3, #16]
-			NVIC_ClearPendingIRQ(EXTI0_1_IRQn); 		// очищаем бит NVIC_ICPRx
+			NVIC_ClearPendingIRQ(EXTI0_1_IRQn); 			// очищаем бит NVIC_ICPRx
  8000f86:	2005      	movs	r0, #5
  8000f88:	f7ff ffb0 	bl	8000eec <__NVIC_ClearPendingIRQ>
-			HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);   		// включаем внешнее прерывание
+			HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);   			// включаем внешнее прерывание
  8000f8c:	2005      	movs	r0, #5
  8000f8e:	f001 ff22 	bl	8002dd6 <HAL_NVIC_EnableIRQ>
 
-			flag_irq_pos = 0;							// Опускаем флаг
+			flag_irq_pos = 0;								// Опускаем флаг
  8000f92:	4b29      	ldr	r3, [pc, #164]	; (8001038 <main+0x114>)
  8000f94:	2200      	movs	r2, #0
  8000f96:	701a      	strb	r2, [r3, #0]
@@ -2664,11 +2664,11 @@ static void MX_GPIO_Init(void)
  8001378:	683b      	ldr	r3, [r7, #0]
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, T1_Pin|T4_Pin|T2_Pin|T3_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, T1_Pin|T4_Pin|T3_Pin|T2_Pin, GPIO_PIN_SET);
  800137a:	23a0      	movs	r3, #160	; 0xa0
  800137c:	05db      	lsls	r3, r3, #23
  800137e:	2201      	movs	r2, #1
- 8001380:	2166      	movs	r1, #102	; 0x66
+ 8001380:	2136      	movs	r1, #54	; 0x36
  8001382:	0018      	movs	r0, r3
  8001384:	f002 f927 	bl	80035d6 <HAL_GPIO_WritePin>
 
@@ -2715,10 +2715,10 @@ static void MX_GPIO_Init(void)
  80013c4:	0018      	movs	r0, r3
  80013c6:	f001 ff85 	bl	80032d4 <HAL_GPIO_Init>
 
-  /*Configure GPIO pins : T1_Pin T4_Pin T2_Pin T3_Pin */
-  GPIO_InitStruct.Pin = T1_Pin|T4_Pin|T2_Pin|T3_Pin;
+  /*Configure GPIO pins : T1_Pin T4_Pin T3_Pin T2_Pin */
+  GPIO_InitStruct.Pin = T1_Pin|T4_Pin|T3_Pin|T2_Pin;
  80013ca:	193b      	adds	r3, r7, r4
- 80013cc:	2266      	movs	r2, #102	; 0x66
+ 80013cc:	2236      	movs	r2, #54	; 0x36
  80013ce:	601a      	str	r2, [r3, #0]
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
  80013d0:	193b      	adds	r3, r7, r4
@@ -2728,9 +2728,9 @@ static void MX_GPIO_Init(void)
  80013d6:	193b      	adds	r3, r7, r4
  80013d8:	2201      	movs	r2, #1
  80013da:	609a      	str	r2, [r3, #8]
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
  80013dc:	193b      	adds	r3, r7, r4
- 80013de:	2202      	movs	r2, #2
+ 80013de:	2200      	movs	r2, #0
  80013e0:	60da      	str	r2, [r3, #12]
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
  80013e2:	193a      	adds	r2, r7, r4
@@ -2923,7 +2923,7 @@ __weak void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
  8001512:	23a0      	movs	r3, #160	; 0xa0
  8001514:	05db      	lsls	r3, r3, #23
  8001516:	2200      	movs	r2, #0
- 8001518:	2144      	movs	r1, #68	; 0x44
+ 8001518:	2114      	movs	r1, #20
  800151a:	0018      	movs	r0, r3
  800151c:	f002 f85b 	bl	80035d6 <HAL_GPIO_WritePin>
 		for (uint16_t var = 0; var < Pulse; ++var) __NOP();
@@ -2950,7 +2950,7 @@ __weak void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
  8001546:	23a0      	movs	r3, #160	; 0xa0
  8001548:	05db      	lsls	r3, r3, #23
  800154a:	2201      	movs	r2, #1
- 800154c:	2144      	movs	r1, #68	; 0x44
+ 800154c:	2114      	movs	r1, #20
  800154e:	0018      	movs	r0, r3
  8001550:	f002 f841 	bl	80035d6 <HAL_GPIO_WritePin>
 		flag_irq_neg = 1;
@@ -3142,7 +3142,7 @@ void PID_init()
  8001690:	4b04      	ldr	r3, [pc, #16]	; (80016a4 <PID_init+0x30>)
  8001692:	4a05      	ldr	r2, [pc, #20]	; (80016a8 <PID_init+0x34>)
  8001694:	60da      	str	r2, [r3, #12]
-    pid.Ki= 10;				    	// интегральный коэффициент
+    pid.Ki= 10.0f;				    	// интегральный коэффициент
  8001696:	4b03      	ldr	r3, [pc, #12]	; (80016a4 <PID_init+0x30>)
  8001698:	4a04      	ldr	r2, [pc, #16]	; (80016ac <PID_init+0x38>)
  800169a:	611a      	str	r2, [r3, #16]
@@ -3158,7 +3158,7 @@ void PID_init()
 
 080016b0 <PID_realize>:
 
-float PID_realize( float c, float c_r)
+float PID_realize( float32_t c, float32_t c_r)
 {
  80016b0:	b590      	push	{r4, r7, lr}
  80016b2:	b083      	sub	sp, #12
@@ -3209,7 +3209,7 @@ float PID_realize( float c, float c_r)
  8001708:	4a23      	ldr	r2, [pc, #140]	; (8001798 <PID_realize+0xe8>)
  800170a:	619a      	str	r2, [r3, #24]
  800170c:	e00a      	b.n	8001724 <PID_realize+0x74>
-    	else if (pid.integral < 0) {pid.integral = 0;}
+    	else if (pid.integral < 0U) {pid.integral = 0U;}
  800170e:	4b21      	ldr	r3, [pc, #132]	; (8001794 <PID_realize+0xe4>)
  8001710:	699b      	ldr	r3, [r3, #24]
  8001712:	2100      	movs	r1, #0
@@ -3258,7 +3258,7 @@ float PID_realize( float c, float c_r)
  800176c:	4a0b      	ldr	r2, [pc, #44]	; (800179c <PID_realize+0xec>)
  800176e:	615a      	str	r2, [r3, #20]
  8001770:	e00a      	b.n	8001788 <PID_realize+0xd8>
-        else if (pid.result < 0) {pid.result = 0;}
+        else if (pid.result < 0U) {pid.result = 0U;}
  8001772:	4b08      	ldr	r3, [pc, #32]	; (8001794 <PID_realize+0xe4>)
  8001774:	695b      	ldr	r3, [r3, #20]
  8001776:	2100      	movs	r1, #0

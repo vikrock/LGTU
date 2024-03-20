@@ -1,10 +1,17 @@
-18:33:51 **** Incremental Build of configuration Debug for project Controlled_Rectifier ****
+08:20:13 **** Incremental Build of configuration Debug for project Controlled_Rectifier ****
 make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G031xx -DARM_MATH_CM0 -c -I../Core/Inc -I../Drivers/STM32G0xx_HAL_Driver/Inc -I../Drivers/STM32G0xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G0xx/Include -I../Drivers/CMSIS/Include -I../Middlewares/ST/ARM/DSP/Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "Controlled_Rectifier.elf" @"objects.list"   -mcpu=cortex-m0plus -T"/home/viktor/STM32CubeIDE/Other_projects/LGTU/Controlled_Rectifier/STM32G031F6PX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Controlled_Rectifier.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: Controlled_Rectifier.elf
+ 
 arm-none-eabi-size  Controlled_Rectifier.elf 
+arm-none-eabi-objdump -h -S Controlled_Rectifier.elf  > "Controlled_Rectifier.list"
    text	   data	    bss	    dec	    hex	filename
   18164	     32	   1888	  20084	   4e74	Controlled_Rectifier.elf
 Finished building: default.size.stdout
  
+Finished building: Controlled_Rectifier.list
+ 
 
-18:33:52 Build Finished. 0 errors, 0 warnings. (took 242ms)
+08:20:13 Build Finished. 0 errors, 0 warnings. (took 420ms)
 

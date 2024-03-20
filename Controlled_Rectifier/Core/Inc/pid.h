@@ -9,19 +9,20 @@
 #define INC_PID_H_
 
 #include "main.h"
+#include "arm_math.h"
 
 typedef struct
 {
-    float targetCurrent;	// задание на ток
-    float ActualCurrent;	// измеренный ток
-    float err;			    // ошибка
-    float Kp,Ki;		  	// коэффициенты ПИ
-    float result;		    // результат регулятора
-    float integral;		  	// интеграл
+    float32_t targetCurrent;	// задание на ток
+    float32_t ActualCurrent;	// измеренный ток
+    float32_t err;			    // ошибка
+    float32_t Kp,Ki;		  	// коэффициенты ПИ
+    float32_t result;		    // результат регулятора
+    float32_t integral;		  	// интеграл
 }pid_p;
 
 void PID_init( void);
-float PID_realize( float c, float c_r);
+float32_t PID_realize( float32_t c, float32_t c_r);
 
 
 

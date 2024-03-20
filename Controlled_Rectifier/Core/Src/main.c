@@ -55,12 +55,12 @@ float32_t Current; 					// Расчётное значение тока
 float32_t Current_filtr; 			// Фильтрованное значение тока (скользящее среднее)
 float32_t targetCurrent = 1.0f; 		// Задание на ток
 
-uint16_t Alpha = 35e3;			//переменная угол альфа
-uint16_t maxAlpha = 35e3;		//180 градусов или 10мС
-uint8_t minAlpha = 0U;			//минимальный угол
-uint16_t refAlpha = 10;			//заданный угол от потенциометра
-uint16_t autoAlpha = 10;		//угол после ПИ регулятора
-uint16_t Pulse = 4e3;			// длительность импульса
+uint16_t Alpha = 35e3;				//переменная угол альфа
+uint16_t maxAlpha = 35e3;			//180 градусов или 10мС
+uint8_t minAlpha = 0;				//минимальный угол
+uint16_t refAlpha = 35e3;				//заданный угол от потенциометра
+uint16_t autoAlpha = 10;			//угол после ПИ регулятора
+uint16_t Pulse = 3e3;				// длительность импульса
 
 volatile uint8_t flag_irq_pos = 0;
 volatile uint8_t flag_irq_neg = 0;
@@ -132,11 +132,11 @@ int main(void)
 		if (flag_irq_pos && (HAL_GetTick() - time_irq) > 10U) {// условие включения прерывания
 //(поднят флаг окончания процедуры и разница текущей временной метки и метки начала процедуры больше 10)
 
-			__HAL_GPIO_EXTI_CLEAR_IT(Zero_positive_Pin);  // очищаем бит EXTI_PR
-			NVIC_ClearPendingIRQ(EXTI0_1_IRQn); 		// очищаем бит NVIC_ICPRx
-			HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);   		// включаем внешнее прерывание
+			__HAL_GPIO_EXTI_CLEAR_IT(Zero_positive_Pin);  	// очищаем бит EXTI_PR
+			NVIC_ClearPendingIRQ(EXTI0_1_IRQn); 			// очищаем бит NVIC_ICPRx
+			HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);   			// включаем внешнее прерывание
 
-			flag_irq_pos = 0;							// Опускаем флаг
+			flag_irq_pos = 0;								// Опускаем флаг
 		}
 
 		if (flag_irq_neg && (HAL_GetTick() - time_irq) > 10U) {
@@ -358,7 +358,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, T1_Pin|T4_Pin|T2_Pin|T3_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, T1_Pin|T4_Pin|T3_Pin|T2_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : Zero_negative_Pin */
   GPIO_InitStruct.Pin = Zero_negative_Pin;
@@ -372,11 +372,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(Zero_positive_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : T1_Pin T4_Pin T2_Pin T3_Pin */
-  GPIO_InitStruct.Pin = T1_Pin|T4_Pin|T2_Pin|T3_Pin;
+  /*Configure GPIO pins : T1_Pin T4_Pin T3_Pin T2_Pin */
+  GPIO_InitStruct.Pin = T1_Pin|T4_Pin|T3_Pin|T2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : Switch_Pin */
