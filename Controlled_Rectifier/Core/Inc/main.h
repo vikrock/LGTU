@@ -71,10 +71,14 @@ void Error_Handler(void);
 #define Switch_GPIO_Port GPIOA
 #define T3_Pin GPIO_PIN_4
 #define T3_GPIO_Port GPIOA
-#define T2_Pin GPIO_PIN_5
-#define T2_GPIO_Port GPIOA
+#define BAD5_Pin GPIO_PIN_5
+#define BAD5_GPIO_Port GPIOA
+#define BAD6_Pin GPIO_PIN_6
+#define BAD6_GPIO_Port GPIOA
 #define Pot_Pin GPIO_PIN_0
 #define Pot_GPIO_Port GPIOB
+#define T2_Pin GPIO_PIN_11
+#define T2_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 

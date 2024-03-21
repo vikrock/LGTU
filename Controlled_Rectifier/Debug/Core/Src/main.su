@@ -5,6 +5,6 @@
 ../Core/Src/main.c:288:13:MX_TIM3_Init	40	static
 ../Core/Src/main.c:331:13:MX_DMA_Init	16	static
 ../Core/Src/main.c:349:13:MX_GPIO_Init	48	static
-../Core/Src/main.c:403:13:HAL_GPIO_EXTI_Falling_Callback	24	static,ignoring_inline_asm
-../Core/Src/main.c:434:6:HAL_ADC_ConvCpltCallback	24	static
-../Core/Src/main.c:459:6:Error_Handler	8	static,ignoring_inline_asm
+../Core/Src/main.c:409:13:HAL_GPIO_EXTI_Falling_Callback	24	static,ignoring_inline_asm
+../Core/Src/main.c:440:6:HAL_ADC_ConvCpltCallback	24	static
+../Core/Src/main.c:465:6:Error_Handler	8	static,ignoring_inline_asm
