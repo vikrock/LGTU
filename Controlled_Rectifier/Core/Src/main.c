@@ -45,6 +45,7 @@
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
@@ -53,7 +54,7 @@ volatile uint16_t adcData[2];		// массив для сбора данных д
 float32_t rawVoltage; 				// Предварительно измеренное значение тока
 float32_t Current; 					// Расчётное значение тока
 float32_t Current_filtr; 			// Фильтрованное значение тока (скользящее среднее)
-float32_t targetCurrent = 1.0f; 		// Задание на ток
+float32_t targetCurrent = 0.3f; 		// Задание на ток
 
 uint16_t Alpha = 35e3;				//переменная угол альфа
 uint16_t maxAlpha = 35e3;			//180 градусов или 10мС
@@ -76,6 +77,7 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
 
@@ -117,11 +119,13 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_TIM3_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   PID_init();
   HAL_ADCEx_Calibration_Start(&hadc1);				 // калибровка АЦП
   HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&adcData, 2);// запуск АЦП в режиме DMA (0 ячейка ток, 1 ячейка потенциометр)
   HAL_TIM_Base_Start(&htim3);
+  //HAL_TIM_Base_Start_IT(&htim1);
 
   /* USER CODE END 2 */
 
@@ -129,7 +133,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1) {
 
-		if (flag_irq_pos && (HAL_GetTick() - time_irq) > 10U) {// условие включения прерывания
+		if (flag_irq_pos && (HAL_GetTick() - time_irq) > 2U) {// условие включения прерывания
 //(поднят флаг окончания процедуры и разница текущей временной метки и метки начала процедуры больше 11)
 
 			__HAL_GPIO_EXTI_CLEAR_IT(Zero_positive_Pin);  	// очищаем бит EXTI_PR
@@ -139,13 +143,14 @@ int main(void)
 			flag_irq_pos = 0;								// Опускаем флаг
 		}
 
-		if (flag_irq_neg && (HAL_GetTick() - time_irq) > 10U) {
+		if (flag_irq_neg && (HAL_GetTick() - time_irq) > 2U) {
 			__HAL_GPIO_EXTI_CLEAR_IT(Zero_negative_Pin);
 			NVIC_ClearPendingIRQ(EXTI4_15_IRQn);
 			HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 			flag_irq_neg = 0;
 		}
+
 
 		autoAlpha = 3.5f * (10000U - PID_realize(targetCurrent, Current_filtr)); //после ПИ регулятора
 
@@ -277,6 +282,53 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 6400-1;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 10000-1;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
 
 }
 
@@ -446,14 +498,32 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	 * Далее из этого напряжения вычтем 2,5В и разделим на чувствительность датчика(вместо деления сделаем умножение),
 	 * и получим наш ток.
 	 */
-	rawVoltage = (float32_t) adcData[0] * 0.00020341624195074313f;
+	rawVoltage = (float32_t) adcData[0] * 0.00019940794091616566f;
 
 	Current = (rawVoltage - 2.5f) * 10U;// измеренный ток ((rawVoltage - 2.5)/sensitivity = (rawVoltage - 2.5)*10)
-	Current_filtr = (1U - 0.1f) * Current_filtr + 0.1f * Current;// фильтр (скользящее среднее)
+	Current_filtr = (1U - 0.05f) * Current_filtr + 0.05f * Current;// фильтр (скользящее среднее)
 
 	refAlpha = (1U - 0.1f) * refAlpha + 0.1f * adcData[1]; //фильтрованное задание от потенциометра
 
 }
+
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+        if(htim->Instance == TIM1) //check if the interrupt comes from TIM1
+        {
+        	if (targetCurrent > 0.22f) {
+        		targetCurrent = 0.2f;
+			} else {
+				targetCurrent = 0.25f;
+			}
+
+        }
+}
+
+
+
+
 
 
 /* USER CODE END 4 */
