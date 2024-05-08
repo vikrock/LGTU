@@ -50,17 +50,16 @@ TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 float32_t sensitivity = 0.1f; 		// Чувствительность 0.1 для 20A модуля, 0,185 для 5А, 0,066 для 30А
-volatile uint16_t adcData[2];		// Массив для сбора данных двух каналов АЦП
-float32_t rawVoltage; 				// Предварительно измеренное значение напряжения от датчика
-float32_t Current; 					// Расчётное значение тока
-float32_t Current_filtr; 			// Фильтрованное значение тока (скользящее среднее)
-float32_t targetCurrent = 4.0f; 	// Задание на ток
+volatile uint16_t adcData[2] = {0,};// Массив для сбора данных двух каналов АЦП
+float32_t rawVoltage = 0.0f; 		// Предварительно измеренное значение напряжения от датчика
+float32_t Current = 0.0f;			// Расчётное значение тока
+float32_t Current_filtr = 0.0f;		// Фильтрованное значение тока (скользящее среднее)
+float32_t targetCurrent = 0.0f; 	// Задание на ток
 
 uint16_t Alpha = 35e3;				// Угол открывания тиристоров альфа
 uint16_t maxAlpha = 35e3;			// Максимальный угол альфа 180 градусов или 10мС
 uint8_t minAlpha = 0;				// Минимальный угол альфа
 uint16_t refAlpha = 35e3;			// Заданный угол от потенциометра
-uint16_t autoAlpha = 10;			// Угол после ПИ регулятора
 uint16_t Pulse = 4e3;				// Длительность импульса
 
 volatile uint8_t flag_irq_pos = 0;	// Флаг окончания прерывания положительного полупериода
@@ -124,8 +123,7 @@ int main(void)
   PID_init();
   HAL_ADCEx_Calibration_Start(&hadc1);				 // калибровка АЦП
   HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&adcData, 2);// запуск АЦП в режиме DMA (0 ячейка ток, 1 ячейка потенциометр)
-  HAL_TIM_Base_Start(&htim3);
-  //HAL_TIM_Base_Start_IT(&htim1);
+  HAL_TIM_Base_Start(&htim3);						 // запуск таймера для АЦП
 
   /* USER CODE END 2 */
 
@@ -133,7 +131,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1) {
 
-		if (flag_irq_pos && (HAL_GetTick() - time_irq) > 12U) {// условие включения прерывания
+		if (flag_irq_pos && (HAL_GetTick() - time_irq) > 10U) {// условие включения прерывания
 //(поднят флаг окончания процедуры и разница текущей временной метки и метки начала процедуры больше 11)
 
 			__HAL_GPIO_EXTI_CLEAR_IT(Zero_positive_Pin);  	// очищаем бит EXTI_PR
@@ -143,7 +141,7 @@ int main(void)
 			flag_irq_pos = 0;								// Опускаем флаг
 		}
 
-		if (flag_irq_neg && (HAL_GetTick() - time_irq) > 12U) {
+		if (flag_irq_neg && (HAL_GetTick() - time_irq) > 10U) {
 			__HAL_GPIO_EXTI_CLEAR_IT(Zero_negative_Pin);
 			NVIC_ClearPendingIRQ(EXTI4_15_IRQn);
 			HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
@@ -152,15 +150,14 @@ int main(void)
 		}
 
 
-		autoAlpha = 3.5f * (10000U - PID_realize(targetCurrent, Current_filtr)); //после ПИ регулятора
-
 		if (HAL_GPIO_ReadPin(GPIOA, Switch_Pin) == ON) {	// Переключатель режима авто/ручной
 			Alpha = refAlpha;
 		}
 		else {
-			Alpha = autoAlpha;
-			targetCurrent = adcData[1] * 0.000152587890625f; // Уставка тока от потенциометра до 5А
+			targetCurrent = ((1U - 0.1f) * targetCurrent + 0.1f * adcData[1])*0.000152587890625f;// Уставка тока от потенциометра до 5А
+			Alpha = 3.5f * (10000U - PID_realize(targetCurrent, Current_filtr)); //после ПИ регулятора
 		}
+
 
     /* USER CODE END WHILE */
 
@@ -250,8 +247,8 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
   hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
-  hadc1.Init.SamplingTimeCommon1 = ADC_SAMPLETIME_12CYCLES_5;
-  hadc1.Init.SamplingTimeCommon2 = ADC_SAMPLETIME_12CYCLES_5;
+  hadc1.Init.SamplingTimeCommon1 = ADC_SAMPLETIME_19CYCLES_5;
+  hadc1.Init.SamplingTimeCommon2 = ADC_SAMPLETIME_19CYCLES_5;
   hadc1.Init.OversamplingMode = ENABLE;
   hadc1.Init.Oversampling.Ratio = ADC_OVERSAMPLING_RATIO_128;
   hadc1.Init.Oversampling.RightBitShift = ADC_RIGHTBITSHIFT_4;
@@ -461,7 +458,7 @@ static void MX_GPIO_Init(void)
 
 __weak void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == Zero_positive_Pin) {  // если прерывание пришло от положительной волны то:
-		HAL_NVIC_DisableIRQ(EXTI0_1_IRQn);// сразу же отключаем прерывания на этом пине
+		HAL_NVIC_DisableIRQ(EXTI0_1_IRQn);// сразу же отключаем прерывания на этом канале
 		time_irq = HAL_GetTick();		  // сохраним текущую временную метку (для отсчёта длительности отключки)
 
 		for (uint16_t var = 0; var < Alpha; ++var) __NOP(); // задержка угла альфа
@@ -507,24 +504,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	refAlpha = (1U - 0.1f) * refAlpha + 0.1f * adcData[1]; //фильтрованное задание от потенциометра
 
 }
-
-/*
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-        if(htim->Instance == TIM1) //check if the interrupt comes from TIM1
-        {
-        	if (targetCurrent > 0.22f) {
-        		targetCurrent = 0.2f;
-			} else {
-				targetCurrent = 0.25f;
-			}
-
-        }
-}
-*/
-
-
-
 
 
 /* USER CODE END 4 */
