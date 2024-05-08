@@ -1,0 +1,370 @@
+{
+  "uuid": "eb7f9e0d5ae947514e0bc636c729a949",
+  "path": "Offline/Controlled rectifier",
+  "name": "Controlled rectifier",
+  "content": "",
+  "created_at": "2024-01-04 13:48:05",
+  "updated_at": "2024-04-02 15:17:09",
+  "stick": "",
+  "documents": [
+    {
+      "uuid": "84ed41b0a18c67eb11fa7ea83fab988e",
+      "title": "Sheet_1",
+      "description": "",
+      "docType": "1",
+      "master": "",
+      "thumb": "/images/thumb-default.png",
+      "components": {
+        "db99e6ef172c4201b7b5f15c6139325f": 10,
+        "7f3f0d35915149898a34b1ee4a271c45": 4,
+        "c340b1a2e8bb48008f1279a7f9ce1ef6": 4,
+        "fc18015b8044403c8ed144e5f6548868": 2,
+        "4be373e54b84bc7610843095aa7d4c42": 3,
+        "c83601ebbc6e4c7a9631189d22e78ffb": 1,
+        "53943e1358844eeda6061fbfe2c1270d": 1,
+        "d4df6eb077c4390eb4a68ecbcb33b5ba": 1,
+        "741ebd1440a34157890a1bf8da81e9ef": 3,
+        "060ff1fe96e14fcaac118eccfc139702": 2,
+        "b770563bab8741f2805d3a52ee24cdde": 1,
+        "3d0f1556879d477babc2f46d8d8cd73b": 1,
+        "747eb179304d443eb9ccd38201faa513": 2,
+        "fff3ee1e602c4a7d9242a5c89a0464ef": 1,
+        "c170394ae6604d7cb31224865bd98248": 4
+      },
+      "BOM": [
+        [
+          "Value",
+          "Quantity",
+          "Package",
+          "Components",
+          "CustomPara"
+        ],
+        [
+          "4.7uF",
+          2,
+          "CAP-TH_BD5.0-P2.00-D0.8-FD",
+          "C1,C3",
+          {
+            "Supplier": "LCSC",
+            "Supplier Part": "C365783",
+            "Manufacturer": "BERYL(绿宝石)",
+            "Manufacturer Part": "RC100M4R7LO5*11TH-2A1E",
+            "Contributor": "LCSC",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "RC100M4R7LO5*11TH-2A1E",
+            "puuid": "3744bcbe1f464b01ae180f32d7d4b0c4",
+            "uuid": "060ff1fe96e14fcaac118eccfc139702"
+          }
+        ],
+        [
+          "100nF",
+          3,
+          "CAP-TH_L4.0-W2.5-P5.00-D1.0",
+          "C2,C4,C5",
+          {
+            "Supplier": "LCSC",
+            "Supplier Part": "C342794",
+            "Manufacturer": "TDK",
+            "Manufacturer Part": "FG28X7R1H104KNT06",
+            "Contributor": "LCSC",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "FG28X7R1H104KNT06",
+            "puuid": "61724eaf9d8e46358297f270d4daf37a",
+            "uuid": "741ebd1440a34157890a1bf8da81e9ef"
+          }
+        ],
+        [
+          "1N5404-E3/54",
+          4,
+          "DO-201_BD5.3-L9.5-P13.50-D1.4-RD",
+          "D1,D2,D3,D4",
+          {
+            "Contributor": "LCSC",
+            "Supplier": "LCSC",
+            "Supplier Part": "C222547",
+            "Manufacturer": "VISHAY(威世)",
+            "Manufacturer Part": "1N5404-E3/54",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "1N5404-E3/54",
+            "puuid": "ff9ef596d2bf4cf99d4cdf94d149edff",
+            "uuid": "c340b1a2e8bb48008f1279a7f9ce1ef6"
+          }
+        ],
+        [
+          "FH-102C",
+          1,
+          "FUSE FH-102C",
+          "F1",
+          {
+            "Supplier": "LCSC",
+            "Manufacturer": "Hadushin",
+            "Manufacturer Part": "",
+            "Contributor": "Сергей Хадюшин",
+            "Supplier Part": "C133487",
+            "spiceSymbolName": "FH-102C",
+            "puuid": "09b468e17527400b9b58357424d3aa7a",
+            "uuid": "c83601ebbc6e4c7a9631189d22e78ffb"
+          }
+        ],
+        [
+          "WJ128V-5.0-2P",
+          3,
+          "CONN-TH_2P-P5.00_WJ128V-5.0-2P",
+          "P1,P2,P3",
+          {
+            "Supplier": "LCSC",
+            "Manufacturer": "KANGNEX(康奈克斯电气)",
+            "Manufacturer Part": "WJ128V-5.0-2P",
+            "Supplier Part": "C8269",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "WJ128V-5.0-2P",
+            "puuid": "3552a8e27c5a459db1e8804ab2f97839",
+            "uuid": "4be373e54b84bc7610843095aa7d4c42"
+          }
+        ],
+        [
+          "JUMPER2",
+          1,
+          "HDR-TH_2P-P2.54-V-M-1",
+          "P4",
+          {
+            "Contributor": "LCSC",
+            "Supplier": "LCSC",
+            "Supplier Part": "C2940092",
+            "Manufacturer": "null",
+            "Manufacturer Part": "Jumper2",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "JUMPER2",
+            "puuid": "7ae61b24ec5d431087f34ea7cfebbd9e",
+            "uuid": "fff3ee1e602c4a7d9242a5c89a0464ef"
+          }
+        ],
+        [
+          "2N6509G",
+          4,
+          "TO-220-3_L10.0-W4.5-P2.54-T",
+          "Q1,Q2,Q3,Q4",
+          {
+            "Contributor": "LCSC",
+            "Supplier": "LCSC",
+            "Manufacturer": "Littelfuse(美国力特)",
+            "Manufacturer Part": "2N6509G",
+            "Supplier Part": "C151717",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "2N6509G",
+            "puuid": "fb8b10620b5a459d9b03fd14987346f4",
+            "uuid": "c170394ae6604d7cb31224865bd98248"
+          }
+        ],
+        [
+          "1k",
+          4,
+          "RES-TH_BD3.5-L9.0-P13.00-D0.5",
+          "R1,R2,R3,R4",
+          {
+            "Contributor": "lcsc",
+            "Supplier": "LCSC",
+            "Supplier Part": "C2896810",
+            "Manufacturer": "VO(翔胜)",
+            "Manufacturer Part": "CR1/2W-330Ω±5%-XT52",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "CR1/2W-330Ω±5%-XT52",
+            "puuid": "9ca988c4af1a4b9f995bc0974cf3bdb8",
+            "uuid": "db99e6ef172c4201b7b5f15c6139325f"
+          }
+        ],
+        [
+          "470Ω",
+          4,
+          "RES-TH_BD3.5-L9.0-P13.00-D0.5",
+          "R5,R6,R7,R8",
+          {
+            "Contributor": "lcsc",
+            "Supplier": "LCSC",
+            "Supplier Part": "C2896810",
+            "Manufacturer": "VO(翔胜)",
+            "Manufacturer Part": "CR1/2W-330Ω±5%-XT52",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "CR1/2W-330Ω±5%-XT52",
+            "puuid": "9ca988c4af1a4b9f995bc0974cf3bdb8",
+            "uuid": "db99e6ef172c4201b7b5f15c6139325f"
+          }
+        ],
+        [
+          "51kΩ",
+          2,
+          "RES-TH_BD4.5-L11.5-P15.50-D0.8",
+          "R9,R10",
+          {
+            "Contributor": "lcsc",
+            "Supplier": "LCSC",
+            "Supplier Part": "C1756140",
+            "Manufacturer": "YAGEO(国巨)",
+            "Manufacturer Part": "RSF100JR-73-51K",
+            "spiceSymbolName": "RSF100JR-73-51K",
+            "puuid": "d5db2e2cca3644e986ddea224d46bc18",
+            "uuid": "fc18015b8044403c8ed144e5f6548868"
+          }
+        ],
+        [
+          "5k",
+          2,
+          "RES-TH_BD3.5-L9.0-P13.00-D0.5",
+          "R11,R13",
+          {
+            "Contributor": "lcsc",
+            "Supplier": "LCSC",
+            "Supplier Part": "C2896810",
+            "Manufacturer": "VO(翔胜)",
+            "Manufacturer Part": "CR1/2W-330Ω±5%-XT52",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "CR1/2W-330Ω±5%-XT52",
+            "puuid": "9ca988c4af1a4b9f995bc0974cf3bdb8",
+            "uuid": "db99e6ef172c4201b7b5f15c6139325f"
+          }
+        ],
+        [
+          "10kΩ",
+          1,
+          "RES-ADJ-TH_3296W",
+          "R12",
+          {
+            "Resistance(Ohms)": "10K",
+            "Contributor": "LCSC",
+            "Supplier": "LCSC",
+            "Supplier Part": "C330432",
+            "Manufacturer": "BOCHEN(博晨)",
+            "Manufacturer Part": "3296W-1-103-8mm",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "3296W-1-103_C330432",
+            "puuid": "5e404972447a403ca43a83aeb15e254e",
+            "uuid": "b770563bab8741f2805d3a52ee24cdde"
+          }
+        ],
+        [
+          "CYMOC3021",
+          4,
+          "DIP-6_L7.3-W6.5-P2.54-LS7.6-BL",
+          "U1,U2,U3,U4",
+          {
+            "Contributor": "LCSC",
+            "Supplier": "LCSC",
+            "Supplier Part": "C970349",
+            "Manufacturer": "OCIC(卓睿科)",
+            "Manufacturer Part": "CYMOC3021",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "CYMOC3021",
+            "puuid": "62a1fb317d974669858342ed86108d17",
+            "uuid": "7f3f0d35915149898a34b1ee4a271c45"
+          }
+        ],
+        [
+          "PC817C-CU-DH",
+          2,
+          "DIP-4_L4.6-W6.5-P2.54-LS7.6-BL",
+          "U5,U8",
+          {
+            "Contributor": "LCSC",
+            "Supplier": "LCSC",
+            "Supplier Part": "C427589",
+            "Manufacturer": "MICRONE(南京微盟)",
+            "Manufacturer Part": "PC817C-Fe-DL",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "PC817C-CU-DH",
+            "puuid": "2b9b6f2a35734a199ff1482393809390",
+            "uuid": "747eb179304d443eb9ccd38201faa513"
+          }
+        ],
+        [
+          "KIA7805API-U/PF",
+          1,
+          "TO-220F-3_L10.2-W4.7-P2.54-L",
+          "U6",
+          {
+            "Supplier": "LCSC",
+            "Manufacturer": "KEC",
+            "Manufacturer Part": "KIA7805API-U/PF",
+            "Supplier Part": "C69761",
+            "JLCPCB Part Class": "Extended Part",
+            "spiceSymbolName": "KIA7805API-U/PF",
+            "puuid": "b1ab92650b1b4b50b63719629740003c",
+            "uuid": "d4df6eb077c4390eb4a68ecbcb33b5ba"
+          }
+        ],
+        [
+          "WEACT STM32G0",
+          1,
+          "WEACT STM32G0",
+          "U7",
+          {
+            "Manufacturer": "",
+            "Manufacturer Part": "",
+            "Supplier": "",
+            "Supplier Part": "",
+            "link": "",
+            "Contributor": "srgybrdk",
+            "spiceSymbolName": "WEACT STM32G0",
+            "puuid": "85b841f1ea524024b10e4b42faf4f9b9",
+            "uuid": "53943e1358844eeda6061fbfe2c1270d"
+          }
+        ],
+        [
+          "CURRENT-SENSOR-ACS712#IC",
+          1,
+          "CURRENT-SENSOR-ACS712#IC",
+          "U9",
+          {
+            "Contributor": "pmkorp",
+            "spiceSymbolName": "CURRENT-SENSOR-ACS712#IC",
+            "Manufacturer Part": "",
+            "puuid": "b0145a5bb3554d9d80f308d8f07cf678",
+            "uuid": "3d0f1556879d477babc2f46d8d8cd73b"
+          }
+        ]
+      ],
+      "updateTime": 1712060229,
+      "createTime": 1704365285,
+      "histories": [],
+      "created_at": "2024-01-04 13:48:05",
+      "updated_at": "2024-04-02 15:17:09"
+    },
+    {
+      "uuid": "638e35f6f4077418fae83ba16d2f7aee",
+      "puuid": "eb7f9e0d5ae947514e0bc636c729a949",
+      "title": "PCB_Controlled rectifier_2",
+      "filename": "PCB_Controlled rectifier_2.json",
+      "description": "",
+      "docType": "3",
+      "master": "",
+      "thumb": "/images/thumb-default.png",
+      "components": {
+        "fb8b10620b5a459d9b03fd14987346f4": 4,
+        "9ca988c4af1a4b9f995bc0974cf3bdb8": 10,
+        "3744bcbe1f464b01ae180f32d7d4b0c4": 2,
+        "61724eaf9d8e46358297f270d4daf37a": 3,
+        "7ae61b24ec5d431087f34ea7cfebbd9e": 1,
+        "b0145a5bb3554d9d80f308d8f07cf678": 1,
+        "ff9ef596d2bf4cf99d4cdf94d149edff": 4,
+        "09b468e17527400b9b58357424d3aa7a": 1,
+        "3552a8e27c5a459db1e8804ab2f97839": 3,
+        "d5db2e2cca3644e986ddea224d46bc18": 2,
+        "62a1fb317d974669858342ed86108d17": 4,
+        "b1ab92650b1b4b50b63719629740003c": 1,
+        "85b841f1ea524024b10e4b42faf4f9b9": 1,
+        "5e404972447a403ca43a83aeb15e254e": 1,
+        "2b9b6f2a35734a199ff1482393809390": 2
+      },
+      "BOM": [],
+      "updateTime": 1711950542,
+      "createTime": 1705494856,
+      "histories": [],
+      "created_at": "2024-01-17 15:34:16",
+      "updated_at": "2024-04-01 08:49:02"
+    }
+  ],
+  "sort": [],
+  "title": "Controlled rectifier",
+  "foldername": "Controlled rectifier",
+  "schfilename": "Controlled rectifier.json",
+  "schfilemtime": 1712060229400
+}
