@@ -60,8 +60,8 @@ all: main-build
 main-build: Controlled_Rectifier.elf secondary-outputs
 
 # Tool invocations
-Controlled_Rectifier.elf Controlled_Rectifier.map: $(OBJS) $(USER_OBJS) /home/viktor/STM32CubeIDE/Other_projects/LGTU/Controlled_Rectifier/STM32G031F6PX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Controlled_Rectifier.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"/home/viktor/STM32CubeIDE/Other_projects/LGTU/Controlled_Rectifier/STM32G031F6PX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Controlled_Rectifier.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Controlled_Rectifier.elf Controlled_Rectifier.map: $(OBJS) $(USER_OBJS) /home/viktor/STM32CubeIDE/Other_projects/Controlled_Rectifier/STM32G031F6PX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Controlled_Rectifier.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"/home/viktor/STM32CubeIDE/Other_projects/Controlled_Rectifier/STM32G031F6PX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Controlled_Rectifier.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
