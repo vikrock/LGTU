@@ -55,12 +55,13 @@ float32_t rawVoltage = 0.0f; 		// Предварительно измеренн�
 float32_t Current = 0.0f;			// Расчётное значение тока
 float32_t Current_filtr = 0.0f;		// Фильтрованное значение тока (скользящее среднее)
 float32_t targetCurrent = 0.0f; 	// Задание на ток
+uint16_t Pot_filtr = 0;				// Фильтрованное светлое
 
-uint16_t Alpha = 35e3;				// Угол открывания тиристоров альфа
-uint16_t maxAlpha = 35e3;			// Максимальный угол альфа 180 градусов или 10мС
+uint16_t Alpha = 23e3;				// Угол открывания тиристоров альфа
+uint16_t maxAlpha = 23e3;			// Максимальный угол альфа 180 градусов или 10мС
 uint8_t minAlpha = 0;				// Минимальный угол альфа
-uint16_t refAlpha = 35e3;			// Заданный угол от потенциометра
-uint16_t Pulse = 4e3;				// Длительность импульса
+uint16_t refAlpha = 23e3;			// Заданный угол от потенциометра
+uint16_t Pulse = 3e3;				// Длительность импульса
 
 volatile uint8_t flag_irq_pos = 0;	// Флаг окончания прерывания положительного полупериода
 volatile uint8_t flag_irq_neg = 0;	// Флаг окончания прерывания отрицательного полупериода
@@ -131,18 +132,16 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1) {
 
-		if (flag_irq_pos && (HAL_GetTick() - time_irq) > 10U) {// условие включения прерывания
-//(поднят флаг окончания процедуры и разница текущей временной метки и метки начала процедуры больше 11)
+		if (flag_irq_pos /*&& (HAL_GetTick() - time_irq) > 10U*/) {// условие включения прерывания
+//(поднят флаг окончания процедуры и разница текущей временной метки и метки начала процедуры больше 10)
 
-			__HAL_GPIO_EXTI_CLEAR_IT(Zero_positive_Pin);  	// очищаем бит EXTI_PR
 			NVIC_ClearPendingIRQ(EXTI0_1_IRQn); 			// очищаем бит NVIC_ICPRx
 			HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);   			// включаем внешнее прерывание
 
 			flag_irq_pos = 0;								// Опускаем флаг
 		}
 
-		if (flag_irq_neg && (HAL_GetTick() - time_irq) > 10U) {
-			__HAL_GPIO_EXTI_CLEAR_IT(Zero_negative_Pin);
+		if (flag_irq_neg /*&& (HAL_GetTick() - time_irq) > 10U*/) {
 			NVIC_ClearPendingIRQ(EXTI4_15_IRQn);
 			HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
@@ -151,13 +150,16 @@ int main(void)
 
 
 		if (HAL_GPIO_ReadPin(GPIOA, Switch_Pin) == ON) {	// Переключатель режима авто/ручной
-			Alpha = refAlpha;
+			if (Pot_filtr>maxAlpha) {
+				Pot_filtr = maxAlpha;
+			}
+			Alpha = Pot_filtr; //Задание от потенциометра
+
 		}
 		else {
-			targetCurrent = ((1U - 0.1f) * targetCurrent + 0.1f * adcData[1])*0.000152587890625f;// Уставка тока от потенциометра до 5А
-			Alpha = 3.5f * (10000U - PID_realize(targetCurrent, Current_filtr)); //после ПИ регулятора
+			targetCurrent = Pot_filtr * 0.00015263f;// Уставка тока от потенциометра до 5А
+			Alpha = 2.3f * (10000U - PID_realize(targetCurrent, Current_filtr)); //после ПИ регулятора
 		}
-
 
     /* USER CODE END WHILE */
 
@@ -386,7 +388,7 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA1_Channel1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 }
@@ -456,10 +458,10 @@ static void MX_GPIO_Init(void)
 
 // ----------------------------Обратотка прерываний от точек перехода нуля------------------
 
-__weak void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
+void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == Zero_positive_Pin) {  // если прерывание пришло от положительной волны то:
 		HAL_NVIC_DisableIRQ(EXTI0_1_IRQn);// сразу же отключаем прерывания на этом канале
-		time_irq = HAL_GetTick();		  // сохраним текущую временную метку (для отсчёта длительности отключки)
+		//time_irq = HAL_GetTick();		  // сохраним текущую временную метку (для отсчёта длительности отключки)
 
 		for (uint16_t var = 0; var < Alpha; ++var) __NOP(); // задержка угла альфа
 
@@ -473,7 +475,7 @@ __weak void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 
 	} else if (GPIO_Pin == Zero_negative_Pin) { 			//если прерывание пришло от отрицательной волны то:
 		HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
-		time_irq = HAL_GetTick();
+		//time_irq = HAL_GetTick();
 		for (uint16_t var = 0; var < Alpha; ++var) __NOP();
 		HAL_GPIO_WritePin(GPIOA, T3_Pin | T4_Pin, OFF);
 		for (uint16_t var = 0; var < Pulse; ++var) __NOP();
@@ -483,7 +485,7 @@ __weak void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 		__NOP();
 	}
 }
-
+//----------------------------------------------------------------------------------------------------
 
 // ---------------------------------Обработка прерывания от DMA---------------------------------------
 
@@ -500,11 +502,10 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 
 	Current = (rawVoltage - 2.5f) * 10U;// измеренный ток ((rawVoltage - 2.5)/sensitivity = (rawVoltage - 2.5)*10)
 	Current_filtr = (1U - 0.05f) * Current_filtr + 0.05f * Current;// фильтр (скользящее среднее)
-
-	refAlpha = (1U - 0.1f) * refAlpha + 0.1f * adcData[1]; //фильтрованное задание от потенциометра
+	Pot_filtr = (1U - 0.1f) * Pot_filtr + 0.1f * adcData[1];// Фильтрованное значение потенциометра
 
 }
-
+//----------------------------------------------------------------------------------------------------
 
 /* USER CODE END 4 */
 
