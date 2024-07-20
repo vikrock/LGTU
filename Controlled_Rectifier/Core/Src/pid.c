@@ -17,7 +17,7 @@ void PID_init()
     pid.err= 0.0f;				    // текущее ошибка фактического и заданного
     pid.integral= 0.0f;			  	// значение интеграла
     pid.Kp= 600.0f;				    // пропорциональный коэффициент
-    pid.Ki= 7.4f;				    	// интегральный коэффициент
+    pid.Ki= 7.5f;				    // интегральный коэффициент
 
 }
 
@@ -30,8 +30,8 @@ float PID_realize( float32_t c, float32_t c_r)
         if (pid.integral > 1000U) {pid.integral = 1000U;}	// насыщение интеграла
     	else if (pid.integral < 0U) {pid.integral = 0U;}
 
-    pid.result = (pid.Kp * pid.err) + (pid.integral * pid.Ki);// формула ПИ
-    if (pid.result > 10000U) {pid.result = 10000U;}				// ограничение регулятора
+    pid.result = (pid.Kp * pid.err) + (pid.integral * pid.Ki);// формула ПИ регулятора
+    if (pid.result > 10000U) {pid.result = 10000U;}			// ограничение регулятора
         else if (pid.result < 0U) {pid.result = 0U;}
 
     return pid.result;
