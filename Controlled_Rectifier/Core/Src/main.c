@@ -57,16 +57,13 @@ float32_t Current_filtr = 0.0f;		// Фильтрованное значение 
 float32_t targetCurrent = 0.0f; 	// Задание на ток
 uint16_t Pot_filtr = 0;				// Фильтрованное светлое
 
-uint16_t Alpha = 23e3;				// Угол открывания тиристоров альфа
+volatile uint16_t Alpha = 0;		// Угол открывания тиристоров альфа
 uint16_t maxAlpha = 23e3;			// Максимальный угол альфа 180 градусов или 10мС
-uint8_t minAlpha = 0;				// Минимальный угол альфа
-uint16_t refAlpha = 23e3;			// Заданный угол от потенциометра
-uint16_t Pulse = 3e3;				// Длительность импульса
+volatile uint16_t Pulse = 6e3;		// Длительность импульса
 
 volatile uint8_t flag_irq_pos = 0;	// Флаг окончания прерывания положительного полупериода
 volatile uint8_t flag_irq_neg = 0;	// Флаг окончания прерывания отрицательного полупериода
 volatile uint32_t time_irq = 0;		// Время обработки прерывания
-
 
 
 /* USER CODE END PV */
@@ -132,33 +129,39 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1) {
 
-		if (flag_irq_pos /*&& (HAL_GetTick() - time_irq) > 10U*/) {// условие включения прерывания
-//(поднят флаг окончания процедуры и разница текущей временной метки и метки начала процедуры больше 10)
+		if (flag_irq_pos && (HAL_GetTick() - time_irq) > 5) {	// условие активации прерывания
 
-			NVIC_ClearPendingIRQ(EXTI0_1_IRQn); 			// очищаем бит NVIC_ICPRx
-			HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);   			// включаем внешнее прерывание
+			NVIC_ClearPendingIRQ(EXTI0_1_IRQn);					// очищаем бит NVIC_ICPRx
 
-			flag_irq_pos = 0;								// Опускаем флаг
+			__HAL_GPIO_EXTI_CLEAR_FALLING_IT(Zero_positive_Pin);// очищаем ножку
+
+			HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);					// включаем внешнее прерывание
+
+			flag_irq_pos = 0;									// опускаем флаг
+
 		}
 
-		if (flag_irq_neg /*&& (HAL_GetTick() - time_irq) > 10U*/) {
+		if (flag_irq_neg && (HAL_GetTick() - time_irq) > 5) {
+
 			NVIC_ClearPendingIRQ(EXTI4_15_IRQn);
+
+			__HAL_GPIO_EXTI_CLEAR_FALLING_IT(Zero_negative_Pin);
+
 			HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 			flag_irq_neg = 0;
+
 		}
 
 
-		if (HAL_GPIO_ReadPin(GPIOA, Switch_Pin) == ON) {	// Переключатель режима авто/ручной
-			if (Pot_filtr>maxAlpha) {
-				Pot_filtr = maxAlpha;
-			}
-			Alpha = Pot_filtr; //Задание от потенциометра
+		if (GPIOA->IDR & GPIO_IDR_ID3) {	// Переключатель режима авто/ручной
 
+			Alpha = Pot_filtr; 				//Задание от потенциометра
 		}
 		else {
-			targetCurrent = Pot_filtr * 0.00015263f;// Уставка тока от потенциометра до 5А
-			Alpha = 2.3f * (10000U - PID_realize(targetCurrent, Current_filtr)); //после ПИ регулятора
+			targetCurrent = Pot_filtr * 0.0003055f;	// Уставка тока от потенциометра до 4А
+			Alpha = 1.21f * (10000U - PID_realize(targetCurrent, Current_filtr)); //после ПИ регулятора
+			// домноженный на коэффициент максимального угла (в данный момент ограничение для индуктивной нагрузки 90)
 		}
 
     /* USER CODE END WHILE */
@@ -461,26 +464,44 @@ static void MX_GPIO_Init(void)
 void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == Zero_positive_Pin) {  // если прерывание пришло от положительной волны то:
 		HAL_NVIC_DisableIRQ(EXTI0_1_IRQn);// сразу же отключаем прерывания на этом канале
-		//time_irq = HAL_GetTick();		  // сохраним текущую временную метку (для отсчёта длительности отключки)
+
+		time_irq = HAL_GetTick();
 
 		for (uint16_t var = 0; var < Alpha; ++var) __NOP(); // задержка угла альфа
 
-		HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, OFF);		// включаем тиристоры Т1 и Т2
+//------Кому какие тиристоры включать смотреть по схеме--------------------------------------
 
+		GPIOA->BRR |= GPIO_BRR_BR4|GPIO_BRR_BR2;			// включаем тиристоры Т3 и Т4
+
+		//GPIOA->BRR |= GPIO_BRR_BR1 | GPIO_BRR_BR11;		// включаем тиристоры Т1 и Т2
+		//HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, OFF);	// вариант с HAL
 		for (uint16_t var = 0; var < Pulse; ++var) __NOP(); // задержка длинны импульса
 
-		HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, ON);		// выключаем тиристоры Т1 иТ2
+		GPIOA->BSRR |= GPIO_BSRR_BS4|GPIO_BSRR_BS2;			// выключаем тиристоры Т3 и Т4
 
-		flag_irq_pos = 1;									//поднимаем флаг
+		//GPIOA->BSRR |= GPIO_BSRR_BS1 | GPIO_BSRR_BS11;	// выключаем тиристоры Т1 иТ2
+		//HAL_GPIO_WritePin(GPIOA, T1_Pin | T2_Pin, ON);	// вариант с HAL
 
-	} else if (GPIO_Pin == Zero_negative_Pin) { 			//если прерывание пришло от отрицательной волны то:
+		flag_irq_pos = 1;									// поднимаем флаг
+
+	} else if (GPIO_Pin == Zero_negative_Pin) { //если прерывание пришло от отрицательной волны то:
+
 		HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
-		//time_irq = HAL_GetTick();
+		time_irq = HAL_GetTick();
 		for (uint16_t var = 0; var < Alpha; ++var) __NOP();
-		HAL_GPIO_WritePin(GPIOA, T3_Pin | T4_Pin, OFF);
+
+		GPIOA->BRR |= GPIO_BRR_BR1 | GPIO_BRR_BR11;
+
+		//GPIOA->BRR |= GPIO_BRR_BR4|GPIO_BRR_BR2;
+		//HAL_GPIO_WritePin(GPIOA, T3_Pin | T4_Pin, OFF);
 		for (uint16_t var = 0; var < Pulse; ++var) __NOP();
-		HAL_GPIO_WritePin(GPIOA, T3_Pin | T4_Pin, ON);
+
+		GPIOA->BSRR |= GPIO_BSRR_BS1 | GPIO_BSRR_BS11;
+
+		//GPIOA->BSRR |= GPIO_BSRR_BS4|GPIO_BSRR_BS2;
+		//HAL_GPIO_WritePin(GPIOA, T3_Pin | T4_Pin, ON);
 		flag_irq_neg = 1;
+
 	} else {
 		__NOP();
 	}
@@ -502,7 +523,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 
 	Current = (rawVoltage - 2.5f) * 10U;// измеренный ток ((rawVoltage - 2.5)/sensitivity = (rawVoltage - 2.5)*10)
 	Current_filtr = (1U - 0.05f) * Current_filtr + 0.05f * Current;// фильтр (скользящее среднее)
-	Pot_filtr = (1U - 0.1f) * Pot_filtr + 0.1f * adcData[1];// Фильтрованное значение потенциометра
+	Pot_filtr = (1U - 0.1f) * Pot_filtr + 0.1f * (adcData[1] * 0.37f);// Фильтрованное значение потенциометра
 
 }
 //----------------------------------------------------------------------------------------------------
